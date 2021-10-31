@@ -121,14 +121,24 @@ function App() {
   });
 
   const claimNFTs = () => {
-    let cost = CONFIG.WEI_COST;
+    let cost = CONFIG.WEI_COST;  // This is the cost of the NFT expressed in wei.
     let gasLimit = CONFIG.GAS_LIMIT;
-    let totalCostWei = String(cost * mintAmount);
+    let totalCostWei = String(cost * mintAmount); // Mint amount depends on how many the users wants to buy.
     let totalGasLimit = String(gasLimit * mintAmount);
+
+    // Log some data in the console.
     console.log("Cost: ", totalCostWei);
     console.log("Gas limit: ", totalGasLimit);
+    
+    // Set the UI to tell the user the NFT is now being minted.
     setFeedback(`Minting your ${CONFIG.NFT_NAME}...`);
+
+    // Set claiming NFT to true to that the UI changes the buttons.
     setClaimingNft(true);
+
+    //////////////////
+    // MINT THE NFT //
+    //////////////////
     blockchain.smartContract.methods
       .mint(mintAmount)
       .send({
@@ -143,11 +153,17 @@ function App() {
         setClaimingNft(false);
       })
       .then((receipt) => {
+
+        // Log the response and set the UI feedback message.
         console.log(receipt);
         setFeedback(
           `WOW, the ${CONFIG.NFT_NAME} is yours! go visit Opensea.io to view it.`
         );
+
+        // Stop loading and re-enable the buttons.
         setClaimingNft(false);
+
+        // Update the application status with the new total supply.
         dispatch(fetchData(blockchain.account));
       });
   };
@@ -169,6 +185,7 @@ function App() {
   };
 
   const getData = () => {
+    // Account is the user wallet address
     if (blockchain.account !== "" && blockchain.smartContract !== null) {
       dispatch(fetchData(blockchain.account));
     }
@@ -241,7 +258,10 @@ function App() {
               </StyledLink>
             </s.TextDescription>
             <s.SpacerSmall />
-            {Number(data.totalSupply) >= CONFIG.MAX_SUPPLY ? (
+            
+            {Number(data.totalSupply) >= CONFIG.MAX_SUPPLY ? 
+            /* If no more are available, show sale ended message */
+            (
               <>
                 <s.TextTitle
                   style={{ textAlign: "center", color: "var(--accent-text)" }}
@@ -258,7 +278,10 @@ function App() {
                   {CONFIG.MARKETPLACE}
                 </StyledLink>
               </>
-            ) : (
+            ) : 
+            
+            /* Otherwise show the MINTING PANEL */
+            (
               <>
                 <s.TextTitle
                   style={{ textAlign: "center", color: "var(--accent-text)" }}
@@ -273,8 +296,13 @@ function App() {
                   Excluding gas fees.
                 </s.TextDescription>
                 <s.SpacerSmall />
-                {blockchain.account === "" ||
-                blockchain.smartContract === null ? (
+                {blockchain.account === "" || blockchain.smartContract === null ? 
+                
+                /* 
+                  If the wallet is not connected or the NFT contract object is missing
+                  Show a BUTTON TO CONNECT to the wallet.
+                 */
+                (
                   <s.Container ai={"center"} jc={"center"}>
                     <s.TextDescription
                       style={{
@@ -285,6 +313,8 @@ function App() {
                       Connect to the {CONFIG.NETWORK.NAME} network
                     </s.TextDescription>
                     <s.SpacerSmall />
+
+                    {/*Entry point to connect the wallet and get the initial count */}
                     <StyledButton
                       onClick={(e) => {
                         e.preventDefault();
@@ -294,6 +324,7 @@ function App() {
                     >
                       CONNECT
                     </StyledButton>
+                    
                     {blockchain.errorMsg !== "" ? (
                       <>
                         <s.SpacerSmall />
@@ -308,7 +339,13 @@ function App() {
                       </>
                     ) : null}
                   </s.Container>
-                ) : (
+                ) : 
+                
+                /* 
+                  If the wallet is connected, show the plus/minus buttons
+                  and show the MINTING BUTTON
+                */
+                (
                   <>
                     <s.TextDescription
                       style={{
@@ -351,18 +388,23 @@ function App() {
                       </StyledRoundButton>
                     </s.Container>
                     <s.SpacerSmall />
+
+                    {/* THE MINT BUTTON */}
                     <s.Container ai={"center"} jc={"center"} fd={"row"}>
                       <StyledButton
                         disabled={claimingNft ? 1 : 0}
                         onClick={(e) => {
                           e.preventDefault();
+                          // CLAIM THE NFTs
                           claimNFTs();
+                          // Update the page data once the user claimed their NFTs.
                           getData();
                         }}
                       >
                         {claimingNft ? "BUSY" : "BUY"}
                       </StyledButton>
                     </s.Container>
+
                   </>
                 )}
               </>

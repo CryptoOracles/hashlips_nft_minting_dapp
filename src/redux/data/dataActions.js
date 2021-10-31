@@ -23,8 +23,12 @@ const fetchDataFailed = (payload) => {
 
 export const fetchData = () => {
   return async (dispatch) => {
+
+    // Change the state to start loading and clear all errors
     dispatch(fetchDataRequest());
+
     try {
+      // Get the total NFT supply from the smart contract
       let totalSupply = await store
         .getState()
         .blockchain.smartContract.methods.totalSupply()
@@ -34,6 +38,7 @@ export const fetchData = () => {
       //   .blockchain.smartContract.methods.cost()
       //   .call();
 
+      // Update the total supply in the state
       dispatch(
         fetchDataSuccess({
           totalSupply,
